@@ -353,6 +353,5 @@ MigrationBackup/
 
 # Custom
 **/.DS_Store
-**/data/
 **/.idea/
 
