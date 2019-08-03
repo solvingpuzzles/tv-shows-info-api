@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Host
+namespace TvShowsScraper.Host
 {
     class Program
     {
