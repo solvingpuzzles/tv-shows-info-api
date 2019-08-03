@@ -1,6 +1,6 @@
 using System;
 
-namespace TvShows.Host.Models
+namespace TvShowsApi.Host.Models
 {
     public class PostActorDto
     {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace TvShows.Host.Models
+namespace TvShowsApi.Host.Models
 {
     public class PostTvShowsDto : IValidatableObject
     {
@@ -17,7 +17,7 @@ namespace TvShows.Host.Models
             
             yield return new ValidationResult(
                 "You must have at least one TV Show.",
-                new[] {nameof(TvShows)});
+                new[] {"Shows"});
         }
     }
 }

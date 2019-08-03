@@ -21,6 +21,23 @@ namespace TvShowsApi.Data
             _database = client.GetDatabase("tvshowsdb");
         }
 
+        public async Task InsertAsync(List<TvShow> shows)
+        {
+            var collection = _database.GetCollection<TvShow>(COLLECTION_NAME);
+            
+            try
+            {
+                _logger.LogDebug($"Inserting '{shows.Count}' TV Shows in the database");
+                await collection.InsertManyAsync(shows);
+                _logger.LogDebug("TV Shows inserted in the database.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogDebug(e, "Error inserting TV Shows in the database");
+                throw;
+            }
+        }
+
         public async Task<List<TvShow>> GetTvShowsAsync()
         {
             try
@@ -46,19 +63,31 @@ namespace TvShowsApi.Data
             }
         }
         
-        public async Task InsertAsync(List<TvShow> shows)
+        public async Task<List<TvShow>> GetTvShowsPaginatedAsync(int page)
         {
-            var collection = _database.GetCollection<TvShow>(COLLECTION_NAME);
-            
             try
             {
-                _logger.LogDebug($"Inserting '{shows.Count}' TV Shows in the database");
-                await collection.InsertManyAsync(shows);
-                _logger.LogDebug("TV Shows inserted in the database.");
+                _logger.LogDebug($"Retrieving TV Shows from page {page} from the database.");
+                
+                var collection = _database.GetCollection<TvShow>(COLLECTION_NAME);
+                var shows = await collection
+                    .Find(FilterDefinition<TvShow>.Empty)
+                    .Skip((page - 1) * PAGE_SIZE)
+                    .Limit(PAGE_SIZE)
+                    .ToListAsync();
+
+                _logger.LogInformation($"Retrieved TV Shows. Count: {shows.Count}. From page: {page}");
+                
+                return shows;
+            }
+            catch (TimeoutException e)
+            {
+                _logger.LogError("Exception connecting to the database", e);
+                throw;
             }
             catch (Exception e)
             {
-                _logger.LogDebug(e, "Error inserting TV Shows in the database");
+                _logger.LogError("Exception retrieving data from the database", e);
                 throw;
             }
         }

@@ -6,7 +6,8 @@ namespace TvShowsApi.Data
 {
     public interface ITvShowsContext
     {
-        Task<List<TvShow>> GetTvShowsAsync();
         Task InsertAsync(List<TvShow> shows);
+        Task<List<TvShow>> GetTvShowsAsync();
+        Task<List<TvShow>> GetTvShowsPaginatedAsync(int page);
     }
 }

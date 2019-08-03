@@ -5,8 +5,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TvShows.Host.Models;
 using TvShowsApi.Data.Models;
+using TvShowsApi.Host.Models;
 using TvShowsApi.Services;
 
 namespace TvShowsApi.Host.Controllers
@@ -27,7 +27,27 @@ namespace TvShowsApi.Host.Controllers
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] int? page)
         {
-            return Ok();
+            if (page.HasValue && page.Value < 1)
+            {
+                return BadRequest(new { param = nameof(page), message = $"The param must have a value that's equal or greater than 1."});
+            }
+            
+            try
+            {
+                var shows = await _service.GetTvShowsAsync(page);
+                
+                return new JsonResult(ConvertToDto(shows));
+            }
+            catch (TimeoutException e)
+            {
+                _logger.LogError("Database isn't accessible.", e);
+                return StatusCode((int)HttpStatusCode.InternalServerError, "Unable to access the good stuff.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error requesting TV Shows.", e);
+                return StatusCode((int)HttpStatusCode.InternalServerError, e.Message);
+            }
         }
         
         [HttpPost]
@@ -67,6 +87,27 @@ namespace TvShowsApi.Host.Controllers
                             DateOfBirth = c.DateOfBirth
                         })
                         .ToList()
+                })
+                .ToList();
+        }
+        
+        private List<GetTvShowDto> ConvertToDto(List<TvShow> shows)
+        {
+            return shows
+                .Select(s => new GetTvShowDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Cast = s.Cast
+                        .OrderByDescending(x => x.DateOfBirth)
+                        .Select(a => new GetActorDto
+                        {
+                            Id = a.Id,
+                            Name = a.Name,
+                            DateOfBirth = a.DateOfBirth.HasValue
+                                ? a.DateOfBirth.Value.Date.ToString("yyyy-MM-dd")
+                                : "N/A"
+                        }).ToList()
                 })
                 .ToList();
         }

@@ -21,9 +21,17 @@ namespace TvShowsApi.Services
 
         public async Task<List<TvShow>> GetTvShowsAsync(int? page)
         {
+            if (page.HasValue && page.Value < 1)
+            {
+                var message = $"If parameter '{nameof(page)}' has a value, it must be equal or greater than 1. Current value is '{page.Value}'.";
+                _logger.LogError(message);
+                throw new ArgumentOutOfRangeException(nameof(page), message);
+            }
+            
             if (page.HasValue)
             {
                 _logger.LogDebug($"Requested TV Shows with pagination enabled. Page requested: {page.Value}.");
+                return await _context.GetTvShowsPaginatedAsync(page.Value);
             }
 
             _logger.LogDebug($"Requested all TV Shows.");
@@ -57,13 +65,14 @@ namespace TvShowsApi.Services
             }
         }
 
-        private async Task<bool> RemoveDuplicates(List<TvShow> shows)
+        private async Task<bool> RemoveDuplicates(List<TvShow> newShows)
         {
+            _logger.LogDebug("Comparing new TV Shows with the ones already stored in the database. Removing duplicates.");
+            
             var existingShows = await _context.GetTvShowsAsync();
+            newShows.RemoveAll(x => existingShows.Exists(y => y.Id == x.Id));
 
-            shows.RemoveAll(x => existingShows.Exists(y => y.Id == x.Id));
-
-            return !shows.Any();
+            return !newShows.Any();
         }
     }
 }
