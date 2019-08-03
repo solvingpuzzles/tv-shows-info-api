@@ -354,4 +354,5 @@ MigrationBackup/
 # Custom
 **/.DS_Store
 **/.idea/
+**/mongo_data/
 
